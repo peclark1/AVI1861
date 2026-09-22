@@ -1,0 +1,9 @@
+Designator,Qty,Value,Manufacturer,Manufacturer Part Number,Package,Assembly,Notes
+C1 C2,2,0.22uF 50V X7R,KEMET,C0805C224K5RACTU,0805,SMT,"Decoupling; equivalent 0.22uF X7R 0805 acceptable"
+U1,1,LINE,Microchip Technology,ATF22V10C-10XU,TSSOP-24,SMT + PROGRAM,"Program before assembly with LINE JEDEC generated from pld/line.pld; exact programming file pending validated compile"
+U2,1,FRAME,Microchip Technology,ATF22V10C-10XU,TSSOP-24,SMT + PROGRAM,"Program before assembly with FRAME JEDEC generated from pld/frame.pld; exact programming file pending validated compile"
+U3,1,CD4014B,Texas Instruments,CD4014BPWR,TSSOP-16,SMT,"CD4014 is intentional. README and Rev A errata confirm 4014; line.pld comments saying CD4021 are stale/incorrect."
+U4,1,74HC4040,Texas Instruments,SN74HC4040PWR,TSSOP-16,SMT,"Use HC4040 per upstream B1 recommendation; do not substitute CD4040 without review"
+U5,1,74LVC1G17,Texas Instruments,SN74LVC1G17DBVRG4,SOT-23-5,SMT,"Schmitt-trigger buffer; DBV/SOT-23-5 footprint"
+U6,1,74LVC2G07,Texas Instruments,SN74LVC2G07DBVR,SOT-23-6,SMT,"Dual open-drain buffer; DBV/SOT-23-6 footprint"
+J1,1,CDP1861-compatible 24-pin interface,,,DIP-24 0.600in,DNI,"Do not assemble. Install suitable round/machined plug-in pins manually after SMT assembly."
