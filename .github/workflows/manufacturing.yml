@@ -14,16 +14,16 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install KiCad CLI
+      - name: Install manufacturing tools
         run: |
           sudo add-apt-repository --yes ppa:kicad/kicad-9.0-releases
           sudo apt-get update
-          sudo apt-get install --yes kicad
+          sudo apt-get install --yes kicad galasm zip
 
       - name: Generate fabrication and assembly exports
         run: |
           set -eux
-          mkdir -p manufacturing/generated/gerbers manufacturing/generated/drill
+          mkdir -p manufacturing/generated/gerbers manufacturing/generated/drill manufacturing/generated/pld
           kicad-cli version
           kicad-cli pcb gerbers -o manufacturing/generated/gerbers/ AVI1861.kicad_pcb
           kicad-cli pcb drill -o manufacturing/generated/drill/ AVI1861.kicad_pcb
@@ -33,7 +33,17 @@ jobs:
             -o manufacturing/generated/AVI1861-kicad-bom.csv AVI1861.kicad_sch
           (cd manufacturing/generated/gerbers && zip -9 ../AVI1861-gerbers.zip ./*)
           (cd manufacturing/generated/drill && zip -9 ../AVI1861-drill.zip ./*)
-          find manufacturing/generated -maxdepth 2 -type f -print | sort
+
+      - name: Compile PLD programming files
+        run: |
+          set -eux
+          cd manufacturing/generated/pld
+          galasm ../../../pld/line.pld
+          galasm ../../../pld/frame.pld
+          find . -maxdepth 1 -type f -print -exec sha256sum {} \;
+
+      - name: Inventory generated files
+        run: find manufacturing/generated -maxdepth 2 -type f -print | sort
 
       - name: Upload manufacturing package
         uses: actions/upload-artifact@v4
