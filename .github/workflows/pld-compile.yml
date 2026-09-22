@@ -1,0 +1,53 @@
+name: Compile AVI1861 PLDs
+
+on:
+  push:
+    branches: [ pcbway-manufacturing ]
+    paths:
+      - 'pld/**'
+      - '.github/workflows/pld-compile.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  compile:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download WinCUPL II from Microchip
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $page = Invoke-WebRequest "https://www.microchip.com/en-us/development-tool/WinCUPL"
+          $hrefs = @($page.Links | ForEach-Object href | Where-Object { $_ -match 'WinCUPL_II.*\.zip' })
+          if (-not $hrefs) { throw "Could not discover WinCUPL II ZIP URL from Microchip page." }
+          $url = $hrefs[0]
+          if ($url -notmatch '^https?://') { $url = "https://www.microchip.com$url" }
+          Invoke-WebRequest $url -OutFile WinCUPL-II.zip
+          Expand-Archive WinCUPL-II.zip -DestinationPath WinCUPL-II
+          Get-ChildItem -Recurse WinCUPL-II | Select-Object FullName
+
+      - name: Locate command-line compiler
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $tools = Get-ChildItem -Recurse WinCUPL-II -File | Where-Object { $_.Name -match '^(cupl|fit).*\.exe$' }
+          $tools | Select-Object FullName
+          if (-not $tools) { throw "No WinCUPL command-line compiler/fitter executables found in archive." }
+
+      - name: Preserve source and tool archive for reproducibility investigation
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force manufacturing/generated/pld-toolchain | Out-Null
+          Copy-Item pld/line.pld manufacturing/generated/pld-toolchain/
+          Copy-Item pld/frame.pld manufacturing/generated/pld-toolchain/
+          Get-FileHash WinCUPL-II.zip -Algorithm SHA256 | Format-List | Out-File manufacturing/generated/pld-toolchain/WinCUPL-II-sha256.txt
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: AVI1861-pld-toolchain-investigation
+          path: manufacturing/generated/pld-toolchain/
+          if-no-files-found: error
