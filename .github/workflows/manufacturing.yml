@@ -18,7 +18,7 @@ jobs:
         run: |
           sudo add-apt-repository --yes ppa:kicad/kicad-9.0-releases
           sudo apt-get update
-          sudo apt-get install --yes kicad galasm zip
+          sudo apt-get install --yes kicad zip
 
       - name: Generate fabrication and assembly exports
         run: |
@@ -34,13 +34,11 @@ jobs:
           (cd manufacturing/generated/gerbers && zip -9 ../AVI1861-gerbers.zip ./*)
           (cd manufacturing/generated/drill && zip -9 ../AVI1861-drill.zip ./*)
 
-      - name: Compile PLD programming files
+      - name: Preserve PLD sources for programming
         run: |
-          set -eux
-          cd manufacturing/generated/pld
-          galasm ../../../pld/line.pld
-          galasm ../../../pld/frame.pld
-          find . -maxdepth 1 -type f -print -exec sha256sum {} \;
+          cp pld/line.pld manufacturing/generated/pld/
+          cp pld/frame.pld manufacturing/generated/pld/
+          echo "PLD sources preserved; JEDEC compilation is intentionally handled separately after exact programmable-device selection." > manufacturing/generated/pld/README.txt
 
       - name: Inventory generated files
         run: find manufacturing/generated -maxdepth 2 -type f -print | sort
